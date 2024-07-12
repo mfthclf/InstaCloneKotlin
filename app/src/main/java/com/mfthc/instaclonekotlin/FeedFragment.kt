@@ -8,6 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.navigation.Navigation
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import com.mfthc.instaclonekotlin.databinding.FragmentFeedBinding
 
 
@@ -16,9 +19,11 @@ class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding!!
     private lateinit var popup: PopupMenu
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
 
     }
 
@@ -55,6 +60,7 @@ class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
             val action = FeedFragmentDirections.actionFeedFragmentToUploadFragment()
             Navigation.findNavController(requireView()).navigate(action)
         } else {
+            auth.signOut()
             val action = FeedFragmentDirections.actionFeedFragmentToUserFragment()
             Navigation.findNavController(requireView()).navigate(action)
         }
