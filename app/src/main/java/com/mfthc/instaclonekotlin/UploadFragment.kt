@@ -23,7 +23,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.storage
 import com.mfthc.instaclonekotlin.databinding.FragmentUploadBinding
+import java.util.UUID
 
 
 class UploadFragment : Fragment() {
@@ -33,11 +39,16 @@ class UploadFragment : Fragment() {
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
     private lateinit var selectedUri: Uri
     private lateinit var selectedBitmap: Bitmap
+    private lateinit var auth: FirebaseAuth
+    private lateinit var storage: FirebaseStorage
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
+        storage = Firebase.storage
         registerLauncher()
+
 
     }
 
@@ -57,6 +68,23 @@ class UploadFragment : Fragment() {
     }
 
     fun Upload(view: View) {
+
+        val uuid = UUID.randomUUID()
+        val imageName = "${uuid}.jpg"
+
+        val reference = storage.reference
+        val imageReference = storage.reference.child("images").child(imageName)
+
+
+        imageReference.putFile(selectedUri).addOnSuccessListener { uploadTask ->
+            imageReference.downloadUrl.addOnSuccessListener { uri ->
+                val downloadUrl = uri.toString()
+            }
+
+        }.addOnFailureListener { exception ->
+            Toast.makeText(requireContext(), exception.localizedMessage, Toast.LENGTH_LONG).show()
+        }
+
 
     }
 
