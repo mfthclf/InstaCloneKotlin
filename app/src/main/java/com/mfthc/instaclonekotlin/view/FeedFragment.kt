@@ -15,6 +15,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.mfthc.instaclonekotlin.R
 import com.mfthc.instaclonekotlin.adapter.PostAdapter
@@ -30,7 +31,7 @@ class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     val postList: ArrayList<Post> = arrayListOf()
-    private var adapter : PostAdapter ?= null
+    private var adapter: PostAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,27 +64,29 @@ class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
     }
 
     private fun getDataFromFireStore() {
-        db.collection("Posts").addSnapshotListener { value, error ->
-            if (error != null) {
-                Toast.makeText(requireContext(), error.localizedMessage, Toast.LENGTH_LONG).show()
-            } else {
-                if (value != null && !value.isEmpty) {
-                    postList.clear()
-                    val documents = value.documents
-                    for (document in documents) {
+        db.collection("Posts").orderBy("date", Query.Direction.DESCENDING)
+            .addSnapshotListener { value, error ->
+                if (error != null) {
+                    Toast.makeText(requireContext(), error.localizedMessage, Toast.LENGTH_LONG)
+                        .show()
+                } else {
+                    if (value != null && !value.isEmpty) {
+                        postList.clear()
+                        val documents = value.documents
+                        for (document in documents) {
 
-                        val comment = document.get("comment") as String
-                        val email = document.get("email") as String
-                        val downloadUrl = document.get("downloadUrl") as String
+                            val comment = document.get("comment") as String
+                            val email = document.get("email") as String
+                            val downloadUrl = document.get("downloadUrl") as String
 
-                        val post = Post(email, comment, downloadUrl)
-                        postList.add(post)
+                            val post = Post(email, comment, downloadUrl)
+                            postList.add(post)
 
+                        }
+                        adapter?.notifyDataSetChanged()
                     }
-                    adapter?.notifyDataSetChanged()
                 }
             }
-        }
     }
 
     fun onClickFloatingButton(view: View) {
