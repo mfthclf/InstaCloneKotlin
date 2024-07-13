@@ -1,4 +1,4 @@
-package com.mfthc.instaclonekotlin
+package com.mfthc.instaclonekotlin.view
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,12 +6,20 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
+import com.mfthc.instaclonekotlin.R
+import com.mfthc.instaclonekotlin.adapter.PostAdapter
 import com.mfthc.instaclonekotlin.databinding.FragmentFeedBinding
+import com.mfthc.instaclonekotlin.model.Post
 
 
 class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
@@ -20,10 +28,14 @@ class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
     private val binding get() = _binding!!
     private lateinit var popup: PopupMenu
     private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+    val postList: ArrayList<Post> = arrayListOf()
+    private var adapter : PostAdapter ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
+        db = Firebase.firestore
 
     }
 
@@ -43,6 +55,35 @@ class FeedFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
         inflater.inflate(R.menu.popup_menu, popup.menu)
         popup.setOnMenuItemClickListener(this)
 
+        getDataFromFireStore()
+
+        adapter = PostAdapter(postList)
+        binding.feedRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.feedRecyclerView.adapter = adapter
+    }
+
+    private fun getDataFromFireStore() {
+        db.collection("Posts").addSnapshotListener { value, error ->
+            if (error != null) {
+                Toast.makeText(requireContext(), error.localizedMessage, Toast.LENGTH_LONG).show()
+            } else {
+                if (value != null && !value.isEmpty) {
+                    postList.clear()
+                    val documents = value.documents
+                    for (document in documents) {
+
+                        val comment = document.get("comment") as String
+                        val email = document.get("email") as String
+                        val downloadUrl = document.get("downloadUrl") as String
+
+                        val post = Post(email, comment, downloadUrl)
+                        postList.add(post)
+
+                    }
+                    adapter?.notifyDataSetChanged()
+                }
+            }
+        }
     }
 
     fun onClickFloatingButton(view: View) {

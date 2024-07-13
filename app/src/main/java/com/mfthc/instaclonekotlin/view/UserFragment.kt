@@ -1,4 +1,4 @@
-package com.mfthc.instaclonekotlin
+package com.mfthc.instaclonekotlin.view
 
 
 import android.os.Bundle
